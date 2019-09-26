@@ -15,6 +15,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "alta-jsapi": "git+https://github.com/alta-vr/alta-jsapi.git",
-    "att-bot-core": "git+https://github.com/alta-vr/ATT-Bot-JS.git"
+    "att-bot-core": "git+https://github.com/alta-vr/ATT-Bot-JS.git",
+    "discord.js": "^11.5.1"
   }
 }

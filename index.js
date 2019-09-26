@@ -2,14 +2,63 @@
 const { WebsocketBot } = require('att-bot-core');
 const { BasicWrapper } = require('att-websockets');
 //Load information from credentials and config
-const { username, password } = require("./credentials");
-const { targetServers } = require("./config");
+const { username, password, discordToken } = require("./credentials");
+const { targetServers, discordPrefix } = require("./config");
+
+const Discord = require('discord.js');
+
+var locations = {};
+
+const commands = {
+    'where': (message, username) =>
+    {
+        if (!!locations[username])
+        {
+            message.channel.send(username + " is at " + locations[username]);
+        }
+        else
+        {
+            message.channel.send("No known location for " + username);
+        }
+    }
+}
 
 //Run the program
 main();
 
 async function main()
 {
+    const discord = new Discord.Client();
+
+    await new Promise(resolve => 
+    {
+        discord.on('ready', resolve);
+
+        discord.login(discordToken);
+    });
+
+    discord.on('message', message =>
+    {
+        if (message.content.length > 0 && message.content.startsWith(discordPrefix))
+        {
+            var trimmed = message.content.substring(discordPrefix.length).trim();
+
+            var space = trimmed.indexOf(' ');
+
+            if (space >= 0)
+            {
+                var command = trimmed.substring(0, space);
+
+                var commandFunction = commands[command];
+
+                if (!!commandFunction)
+                {
+                    commandFunction(message, trimmed.substring(space).trim());
+                }            
+            }
+        }
+    });
+
     //Create a new bot
     const bot = new WebsocketBot();
 
@@ -27,8 +76,8 @@ async function main()
         //Subscribe to "PlayerMovedChunk"
         await wrapper.subscribe("PlayerMovedChunk", data =>
         { 
-            //Log out the players movement
-            console.log(data.player.username + " moved to " + data.newChunk);
+            //Store the players location
+            locations[data.player.username] = data.newChunk;
         });
     });
 }
